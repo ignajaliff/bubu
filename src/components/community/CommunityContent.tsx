@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
-import { Plus, Search, Filter, Eye, RefreshCw, FileText } from 'lucide-react';
+import { Plus, Search, Filter, Eye, RefreshCw, FileText, ExternalLink } from 'lucide-react';
 import ContentDetailsModal from './ContentDetailsModal';
 import StatusChangeModal from './StatusChangeModal';
 import PresentationModal from './PresentationModal';
@@ -39,11 +39,21 @@ interface UserProfile {
   email: string;
 }
 
+interface PresentationLink {
+  id: string;
+  client_id: string;
+  link: string;
+  pilares: string[];
+  objetivos: string[];
+  created_at: string;
+}
+
 export default function CommunityContent() {
   const { id: clientId } = useParams();
   const { toast } = useToast();
   const [content, setContent] = useState<CommunityContentRow[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [presentationLinks, setPresentationLinks] = useState<PresentationLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,6 +87,7 @@ export default function CommunityContent() {
   useEffect(() => {
     fetchContent();
     fetchUsers();
+    fetchPresentationLinks();
   }, [clientId]);
 
   const fetchContent = async () => {
@@ -111,6 +122,19 @@ export default function CommunityContent() {
       setUsers(data || []);
     } catch (error) {
       console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchPresentationLinks = async () => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_presentation_links', { client_id_param: clientId });
+
+      if (error) throw error;
+      setPresentationLinks(data || []);
+    } catch (error) {
+      console.error('Error fetching presentation links:', error);
+      // If the function doesn't exist, we'll create it later
     }
   };
 
@@ -186,17 +210,15 @@ export default function CommunityContent() {
       // Generate a unique ID for the presentation
       const presentationId = crypto.randomUUID();
       
-      // Create the presentation record
-      const { error } = await supabase
-        .from('links_temporales')
-        .insert([{
-          id: presentationId,
-          client_id: clientId,
-          link: `/presentation/${presentationId}`,
-          pilares: data.pilares,
-          objetivos: data.objetivos,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        }]);
+      // Create the presentation record using raw SQL
+      const { error } = await supabase.rpc('create_presentation_link', {
+        link_id: presentationId,
+        client_id_param: clientId,
+        link_url: `/presentation/${presentationId}`,
+        pilares_data: data.pilares,
+        objetivos_data: data.objetivos,
+        created_by_user: (await supabase.auth.getUser()).data.user?.id
+      });
 
       if (error) throw error;
 
@@ -204,6 +226,9 @@ export default function CommunityContent() {
         title: "Éxito",
         description: "Presentación creada correctamente",
       });
+
+      // Refresh presentation links
+      fetchPresentationLinks();
 
       // Open the presentation in a new tab
       window.open(`/presentation/${presentationId}`, '_blank');
@@ -228,6 +253,36 @@ export default function CommunityContent() {
         <h2 className="text-2xl font-bold mb-2">Gestión de Contenidos</h2>
         <p className="opacity-90">Administra y supervisa todo el contenido de redes sociales</p>
       </div>
+
+      {/* Presentation Links Section */}
+      {presentationLinks.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Presentaciones Creadas</h3>
+          <div className="space-y-3">
+            {presentationLinks.map((presentation) => (
+              <div key={presentation.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+                <div>
+                  <p className="font-medium text-gray-900">
+                    Presentación del {new Date(presentation.created_at).toLocaleDateString('es-ES')}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {presentation.pilares.length} pilares • {presentation.objetivos.length} objetivos
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(presentation.link, '_blank')}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ver Presentación
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filtros y búsqueda con mejor diseño */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
