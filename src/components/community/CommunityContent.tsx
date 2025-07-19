@@ -1,118 +1,90 @@
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
-import { Plus, Search, Filter, Eye, RefreshCw } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Plus, Calendar, Eye, FileText, ExternalLink } from 'lucide-react';
 import ContentDetailsModal from './ContentDetailsModal';
 import StatusChangeModal from './StatusChangeModal';
+import PresentationModal from './PresentationModal';
 
-interface CommunityContentRow {
+interface CommunityContentItem {
   id: string;
   semana: string;
   fecha: string;
-  link: string;
-  disenadora: string;
-  estado_diseno: string;
-  comentarios_diseno: string;
-  estado_copies: string;
-  comentarios_copies: string;
   tipo_publicacion: string;
   plataforma: string;
   pilar: string;
   referencia: string;
-  copy_grafica_video: string;
   copy_publicacion: string;
-  created_at: string;
-}
-
-interface UserProfile {
-  id: string;
-  full_name: string;
-  email: string;
+  comentarios_diseno: string;
+  comentarios_copies: string;
+  copy_grafica_video: string;
+  estado_diseno: string;
+  estado_copies: string;
+  link: string;
 }
 
 export default function CommunityContent() {
   const { id: clientId } = useParams();
   const { toast } = useToast();
-  const [content, setContent] = useState<CommunityContentRow[]>([]);
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [platformFilter, setPlatformFilter] = useState('all');
-  
-  // Estados para los modales
-  const [detailsModal, setDetailsModal] = useState({ isOpen: false, content: null });
-  const [statusModal, setStatusModal] = useState({ isOpen: false, content: null });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     semana: '',
     fecha: '',
-    link: '',
-    disenadora: '',
-    estado_diseno: 'Para diseñar',
-    comentarios_diseno: '',
-    estado_copies: 'Para revisar',
-    comentarios_copies: '',
     tipo_publicacion: '',
     plataforma: '',
     pilar: '',
     referencia: '',
+    copy_publicacion: '',
+    comentarios_diseno: '',
+    comentarios_copies: '',
     copy_grafica_video: '',
-    copy_publicacion: ''
+    estado_diseno: 'Pendiente',
+    estado_copies: 'Pendiente',
+    link: ''
   });
 
-  useEffect(() => {
-    fetchContent();
-    fetchUsers();
-  }, [clientId]);
-
-  const fetchContent = async () => {
-    try {
+  const { data: content = [], refetch } = useQuery({
+    queryKey: ['community-content', clientId],
+    queryFn: async () => {
+      if (!clientId) return [];
       const { data, error } = await supabase
         .from('community_content')
         .select('*')
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
-
+        .order('fecha', { ascending: false });
+      
       if (error) throw error;
-      setContent(data || []);
-    } catch (error) {
-      console.error('Error fetching content:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo cargar el contenido",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, full_name, email');
-
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
-  };
+      return data;
+    },
+    enabled: !!clientId,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.semana.trim() || !formData.fecha.trim() || !formData.tipo_publicacion.trim() || !formData.plataforma.trim()) {
+      toast({
+        title: "Error",
+        description: "Todos los campos son requeridos",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('community_content')
@@ -126,387 +98,279 @@ export default function CommunityContent() {
 
       toast({
         title: "Éxito",
-        description: "Contenido agregado correctamente",
+        description: "Contenido creado correctamente",
       });
 
-      setIsOpen(false);
+      setIsDialogOpen(false);
       setFormData({
         semana: '',
         fecha: '',
-        link: '',
-        disenadora: '',
-        estado_diseno: 'Para diseñar',
-        comentarios_diseno: '',
-        estado_copies: 'Para revisar',
-        comentarios_copies: '',
         tipo_publicacion: '',
         plataforma: '',
         pilar: '',
         referencia: '',
+        copy_publicacion: '',
+        comentarios_diseno: '',
+        comentarios_copies: '',
         copy_grafica_video: '',
-        copy_publicacion: ''
+        estado_diseno: 'Pendiente',
+        estado_copies: 'Pendiente',
+        link: ''
       });
-      fetchContent();
+      refetch();
     } catch (error) {
       console.error('Error creating content:', error);
       toast({
         title: "Error",
-        description: "No se pudo agregar el contenido",
+        description: "No se pudo crear el contenido",
         variant: "destructive",
       });
     }
   };
 
-  const refreshContent = () => {
-    fetchContent();
+  const handleOpenDetailsModal = (contentItem: any) => {
+    setSelectedContent(contentItem);
+    setIsDetailsModalOpen(true);
   };
 
-  const filteredContent = content.filter(item => {
-    const matchesSearch = item.pilar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.referencia?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.semana.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || item.estado_diseno === statusFilter;
-    const matchesPlatform = platformFilter === 'all' || item.plataforma === platformFilter;
-    
-    return matchesSearch && matchesStatus && matchesPlatform;
-  });
+  const handleOpenStatusModal = (contentItem: any) => {
+    setSelectedContent(contentItem);
+    setIsStatusModalOpen(true);
+  };
 
-  if (loading) {
-    return <div className="flex justify-center p-8">Cargando...</div>;
-  }
+  const handleCloseModals = () => {
+    setSelectedContent(null);
+    setIsDetailsModalOpen(false);
+    setIsStatusModalOpen(false);
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Gestión de Contenidos</h2>
-        <p className="opacity-90">Administra y supervisa todo el contenido de redes sociales</p>
-      </div>
-
-      {/* Filtros y búsqueda con mejor diseño */}
-      <div className="bg-white rounded-xl shadow-sm border p-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex flex-col md:flex-row gap-4 flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Buscar por pilar, referencia o semana..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 md:w-80 border-2 focus:border-purple-400"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 border-2 focus:border-purple-400">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Estado del diseño" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="Para diseñar">Para diseñar</SelectItem>
-                <SelectItem value="Para Revisar">Para Revisar</SelectItem>
-                <SelectItem value="Para Corregir">Para Corregir</SelectItem>
-                <SelectItem value="Aprobado">Aprobado</SelectItem>
-                <SelectItem value="Publicado">Publicado</SelectItem>
-                <SelectItem value="Cancelado">Cancelado</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={platformFilter} onValueChange={setPlatformFilter}>
-              <SelectTrigger className="w-40 border-2 focus:border-purple-400">
-                <SelectValue placeholder="Plataforma" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="Instagram">Instagram</SelectItem>
-                <SelectItem value="Facebook">Facebook</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">Gestión de Contenidos</h2>
+            <p className="opacity-90">Planifica y gestiona todo el contenido de redes sociales</p>
           </div>
-
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Contenido
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Agregar Nuevo Contenido</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="semana">Semana</Label>
-                    <Select value={formData.semana} onValueChange={(value) => setFormData({...formData, semana: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar semana" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Semana 1">Semana 1</SelectItem>
-                        <SelectItem value="Semana 2">Semana 2</SelectItem>
-                        <SelectItem value="Semana 3">Semana 3</SelectItem>
-                        <SelectItem value="Semana 4">Semana 4</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="fecha">Fecha</Label>
-                    <Input
-                      type="date"
-                      value={formData.fecha}
-                      onChange={(e) => setFormData({...formData, fecha: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="link">Link</Label>
-                    <Input
-                      type="url"
-                      value={formData.link}
-                      onChange={(e) => setFormData({...formData, link: e.target.value})}
-                      placeholder="https://..."
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="disenadora">Diseñadora</Label>
-                    <Select value={formData.disenadora} onValueChange={(value) => setFormData({...formData, disenadora: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar diseñadora" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users.map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.full_name || user.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="tipo_publicacion">Tipo de Publicación</Label>
-                    <Select value={formData.tipo_publicacion} onValueChange={(value) => setFormData({...formData, tipo_publicacion: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Historia">Historia</SelectItem>
-                        <SelectItem value="Historia (2)">Historia (2)</SelectItem>
-                        <SelectItem value="Historia (3)">Historia (3)</SelectItem>
-                        <SelectItem value="Post">Post</SelectItem>
-                        <SelectItem value="Carrusel">Carrusel</SelectItem>
-                        <SelectItem value="Carrusel (1)">Carrusel (1)</SelectItem>
-                        <SelectItem value="Carrusel (3)">Carrusel (3)</SelectItem>
-                        <SelectItem value="Carrusel (4)">Carrusel (4)</SelectItem>
-                        <SelectItem value="Reel">Reel</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="plataforma">Plataforma</Label>
-                    <Select value={formData.plataforma} onValueChange={(value) => setFormData({...formData, plataforma: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar plataforma" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Instagram">Instagram</SelectItem>
-                        <SelectItem value="Facebook">Facebook</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="pilar">Pilar</Label>
-                    <Input
-                      value={formData.pilar}
-                      onChange={(e) => setFormData({...formData, pilar: e.target.value})}
-                      placeholder="Ingrese el pilar"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="referencia">Referencia</Label>
-                    <Input
-                      value={formData.referencia}
-                      onChange={(e) => setFormData({...formData, referencia: e.target.value})}
-                      placeholder="Ingrese la referencia"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="comentarios_diseno">Comentarios sobre el diseño</Label>
-                    <Textarea
-                      value={formData.comentarios_diseno}
-                      onChange={(e) => setFormData({...formData, comentarios_diseno: e.target.value})}
-                      placeholder="Comentarios sobre el diseño..."
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="comentarios_copies">Comentarios sobre los copies</Label>
-                    <Textarea
-                      value={formData.comentarios_copies}
-                      onChange={(e) => setFormData({...formData, comentarios_copies: e.target.value})}
-                      placeholder="Comentarios sobre los copies..."
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="copy_grafica_video">Copy de la gráfica o video</Label>
-                    <Textarea
-                      value={formData.copy_grafica_video}
-                      onChange={(e) => setFormData({...formData, copy_grafica_video: e.target.value})}
-                      placeholder="Copy de la gráfica o video..."
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="copy_publicacion">Copy de la publicación</Label>
-                    <Textarea
-                      value={formData.copy_publicacion}
-                      onChange={(e) => setFormData({...formData, copy_publicacion: e.target.value})}
-                      placeholder="Copy de la publicación..."
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit">Guardar Contenido</Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Tabla con mejor diseño */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-gradient-to-r from-slate-50 to-slate-100">
-              <TableRow>
-                <TableHead className="font-semibold text-slate-700">Semana</TableHead>
-                <TableHead className="font-semibold text-slate-700">Fecha</TableHead>
-                <TableHead className="font-semibold text-slate-700">Tipo</TableHead>
-                <TableHead className="font-semibold text-slate-700">Plataforma</TableHead>
-                <TableHead className="font-semibold text-slate-700">Estado Diseño</TableHead>
-                <TableHead className="font-semibold text-slate-700">Estado Copies</TableHead>
-                <TableHead className="font-semibold text-slate-700">Pilar</TableHead>
-                <TableHead className="font-semibold text-slate-700">Diseñadora</TableHead>
-                <TableHead className="font-semibold text-slate-700">Link</TableHead>
-                <TableHead className="font-semibold text-slate-700 text-center">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredContent.map((item, index) => (
-                <TableRow key={item.id} className={`hover:bg-slate-50 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
-                  <TableCell className="font-medium text-slate-900">{item.semana}</TableCell>
-                  <TableCell className="text-slate-700">{new Date(item.fecha).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-slate-700">{item.tipo_publicacion}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.plataforma === 'Instagram' ? 'bg-pink-100 text-pink-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {item.plataforma}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.estado_diseno === 'Aprobado' ? 'bg-green-100 text-green-800' :
-                      item.estado_diseno === 'Publicado' ? 'bg-emerald-100 text-emerald-800' :
-                      item.estado_diseno === 'Para Corregir' ? 'bg-red-100 text-red-800' :
-                      item.estado_diseno === 'Para Revisar' ? 'bg-yellow-100 text-yellow-800' :
-                      item.estado_diseno === 'Cancelado' ? 'bg-gray-100 text-gray-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {item.estado_diseno}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.estado_copies === 'Aprobado' ? 'bg-green-100 text-green-800' :
-                      item.estado_copies === 'Para corregir' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {item.estado_copies}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-slate-700">{item.pilar}</TableCell>
-                  <TableCell className="text-slate-700">
-                    {users.find(u => u.id === item.disenadora)?.full_name || 
-                     users.find(u => u.id === item.disenadora)?.email || 
-                     'No asignado'}
-                  </TableCell>
-                  <TableCell>
-                    {item.link && (
-                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                        Ver link
-                      </a>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDetailsModal({ isOpen: true, content: item })}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                      >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Ver detalles
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setStatusModal({ isOpen: true, content: item })}
-                        className="text-purple-600 border-purple-200 hover:bg-purple-50"
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Cambiar estados
-                      </Button>
+          <div className="flex space-x-2">
+            <Button 
+              className="bg-white text-purple-600 hover:bg-gray-100"
+              onClick={() => setIsPresentationModalOpen(true)}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Crear Presentación
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-white text-purple-600 hover:bg-gray-100">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Contenido
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Agregar Nuevo Contenido</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="semana">Semana</Label>
+                      <Input
+                        id="semana"
+                        value={formData.semana}
+                        onChange={(e) => setFormData({...formData, semana: e.target.value})}
+                        placeholder="Número de semana"
+                        required
+                      />
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+
+                    <div>
+                      <Label htmlFor="fecha">Fecha</Label>
+                      <Input
+                        id="fecha"
+                        type="date"
+                        value={formData.fecha}
+                        onChange={(e) => setFormData({...formData, fecha: e.target.value})}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="tipo_publicacion">Tipo de Publicación</Label>
+                      <Select value={formData.tipo_publicacion} onValueChange={(value) => setFormData({...formData, tipo_publicacion: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Post">Post</SelectItem>
+                          <SelectItem value="Historia">Historia</SelectItem>
+                          <SelectItem value="Reel">Reel</SelectItem>
+                          <SelectItem value="Carrusel">Carrusel</SelectItem>
+                          <SelectItem value="Video">Video</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="plataforma">Plataforma</Label>
+                      <Select value={formData.plataforma} onValueChange={(value) => setFormData({...formData, plataforma: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar plataforma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Instagram">Instagram</SelectItem>
+                          <SelectItem value="Facebook">Facebook</SelectItem>
+                          <SelectItem value="TikTok">TikTok</SelectItem>
+                          <SelectItem value="Twitter">Twitter</SelectItem>
+                          <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="pilar">Pilar de Contenido</Label>
+                      <Input
+                        id="pilar"
+                        value={formData.pilar}
+                        onChange={(e) => setFormData({...formData, pilar: e.target.value})}
+                        placeholder="Ej: Educativo, Entretenimiento, Promocional"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="referencia">Referencia</Label>
+                      <Input
+                        id="referencia"
+                        value={formData.referencia}
+                        onChange={(e) => setFormData({...formData, referencia: e.target.value})}
+                        placeholder="Link de referencia o idea original"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="copy_publicacion">Copy de Publicación</Label>
+                      <Textarea
+                        id="copy_publicacion"
+                        value={formData.copy_publicacion}
+                        onChange={(e) => setFormData({...formData, copy_publicacion: e.target.value})}
+                        placeholder="Escribe el copy de la publicación"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <Label htmlFor="link">Link (opcional)</Label>
+                      <Input
+                        id="link"
+                        type="url"
+                        value={formData.link}
+                        onChange={(e) => setFormData({...formData, link: e.target.value})}
+                        placeholder="Enlace a la publicación (si aplica)"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">Crear Contenido</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
-      {filteredContent.length === 0 && (
+      {/* Lista de Contenido */}
+      <div className="grid gap-4">
+        {content.map((item) => (
+          <Card key={item.id} className="hover:shadow-md transition-shadow border-l-4 border-l-purple-400">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <h3 className="font-semibold text-lg text-gray-900">{item.tipo_publicacion} en {item.plataforma}</h3>
+                    <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                      Semana {item.semana}
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-gray-600 mb-3">{item.copy_publicacion?.substring(0, 100)}...</p>
+                  
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-4">
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(item.fecha).toLocaleDateString()}</span>
+                    </div>
+                    {item.pilar && (
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">Pilar:</span>
+                        <span>{item.pilar}</span>
+                      </div>
+                    )}
+                    {item.referencia && (
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">Ref:</span>
+                        <span>{item.referencia}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center space-x-4 text-sm">
+                    <Button variant="secondary" size="sm" onClick={() => handleOpenDetailsModal(item)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalles
+                    </Button>
+                    {item.link && (
+                      <Button variant="ghost" size="sm" asChild>
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex items-center">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Ver Publicación
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="ml-4">
+                  <Button variant="outline" size="icon" onClick={() => handleOpenStatusModal(item)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.333 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.689-2.779-.217-2.779-1.643v-3.155a2.25 2.25 0 012.25-2.25h1.372c.516 0 .966.351 1.091.852l1.106 4.423c.11.44-.054.902-.476 1.114a.75.75 0 01-.793-.137l-1.433-.8c-.667-.37-.667-1.307 0-1.677l1.432-.799c.421-.212.585-.674.476-1.114l-1.105-4.423c-.125-.501-.575-.852-1.091-.852H6.75a2.25 2.25 0 01-2.25-2.25V5.653z" clipRule="evenodd" /></svg>
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {content.length === 0 && (
         <div className="text-center py-12 bg-white rounded-xl border">
-          <div className="text-slate-400 text-lg mb-2">No se encontraron contenidos</div>
-          <p className="text-slate-500">Intenta ajustar los filtros o agregar nuevo contenido</p>
+          <div className="text-slate-400 text-lg mb-2">No hay contenido creado</div>
+          <p className="text-slate-500">Crea el primer contenido para comenzar</p>
         </div>
       )}
 
-      {/* Modales */}
       <ContentDetailsModal
-        content={detailsModal.content}
-        isOpen={detailsModal.isOpen}
-        onClose={() => setDetailsModal({ isOpen: false, content: null })}
-        onUpdate={refreshContent}
+        content={selectedContent}
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseModals}
+        onUpdate={refetch}
       />
 
       <StatusChangeModal
-        content={statusModal.content}
-        isOpen={statusModal.isOpen}
-        onClose={() => setStatusModal({ isOpen: false, content: null })}
-        onUpdate={refreshContent}
+        content={selectedContent}
+        isOpen={isStatusModalOpen}
+        onClose={handleCloseModals}
+        onUpdate={refetch}
+      />
+
+      {/* Presentation Modal */}
+      <PresentationModal 
+        isOpen={isPresentationModalOpen}
+        onClose={() => setIsPresentationModalOpen(false)}
       />
     </div>
   );

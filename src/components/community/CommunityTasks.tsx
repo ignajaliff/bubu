@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +44,7 @@ export default function CommunityTasks() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'medium' as 'high' | 'medium' | 'low',
     due_date: '',
     responsible_user: '',
     accountable_user: '',
@@ -103,13 +102,13 @@ export default function CommunityTasks() {
     try {
       const { error } = await supabase
         .from('community_task')
-        .insert([{
+        .insert({
           ...formData,
           client_id: clientId,
-          info_type: 'task',
-          status: 'pending',
+          info_type: 'task' as any,
+          status: 'pending' as any,
           created_by: (await supabase.auth.getUser()).data.user?.id
-        }]);
+        });
 
       if (error) throw error;
 
