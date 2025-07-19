@@ -494,39 +494,6 @@ export type Database = {
           },
         ]
       }
-      links_temporales: {
-        Row: {
-          client_id: string | null
-          created_at: string
-          created_by: string | null
-          id: string
-          link: string
-          objetivos: Json | null
-          pilares: Json | null
-          updated_at: string
-        }
-        Insert: {
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          link: string
-          objetivos?: Json | null
-          pilares?: Json | null
-          updated_at?: string
-        }
-        Update: {
-          client_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          link?: string
-          objetivos?: Json | null
-          pilares?: Json | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       marketing_task_camp: {
         Row: {
           accountable_user: string | null
