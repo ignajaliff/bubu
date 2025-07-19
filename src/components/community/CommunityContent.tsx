@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +45,8 @@ export default function CommunityContent() {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [platformFilter, setPlatformFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [platformFilter, setPlatformFilter] = useState('all');
 
   const [formData, setFormData] = useState({
     semana: '',
@@ -155,8 +156,8 @@ export default function CommunityContent() {
     const matchesSearch = item.pilar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.referencia?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.semana.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || item.estado_diseno === statusFilter;
-    const matchesPlatform = !platformFilter || item.plataforma === platformFilter;
+    const matchesStatus = statusFilter === 'all' || item.estado_diseno === statusFilter;
+    const matchesPlatform = platformFilter === 'all' || item.plataforma === platformFilter;
     
     return matchesSearch && matchesStatus && matchesPlatform;
   });
@@ -186,7 +187,7 @@ export default function CommunityContent() {
               <SelectValue placeholder="Estado del diseño" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los estados</SelectItem>
+              <SelectItem value="all">Todos los estados</SelectItem>
               <SelectItem value="Para diseñar">Para diseñar</SelectItem>
               <SelectItem value="Para Revisar">Para Revisar</SelectItem>
               <SelectItem value="Para Corregir">Para Corregir</SelectItem>
@@ -201,7 +202,7 @@ export default function CommunityContent() {
               <SelectValue placeholder="Plataforma" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="Instagram">Instagram</SelectItem>
               <SelectItem value="Facebook">Facebook</SelectItem>
             </SelectContent>
