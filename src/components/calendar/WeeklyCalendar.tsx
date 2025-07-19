@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +37,15 @@ interface Task {
   title: string;
   due_date: string;
   priority: string;
+}
+
+interface CommunityContent {
+  id: string;
+  semana: string;
+  fecha: string;
+  tipo_publicacion: string;
+  plataforma: string;
+  pilar: string;
 }
 
 interface User {
@@ -125,6 +133,24 @@ export default function WeeklyCalendar({ area }: WeeklyCalendarProps) {
       return data;
     },
     enabled: !!clientId,
+  });
+
+  // Obtener contenido de community (solo para el área Community)
+  const { data: communityContent = [] } = useQuery({
+    queryKey: ['community-content-calendar', clientId],
+    queryFn: async () => {
+      if (!clientId || area !== 'Community') return [];
+      
+      const { data, error } = await supabase
+        .from('community_content')
+        .select('id, semana, fecha, tipo_publicacion, plataforma, pilar')
+        .eq('client_id', clientId)
+        .order('fecha');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId && area === 'Community',
   });
 
   // Crear evento
@@ -228,12 +254,26 @@ export default function WeeklyCalendar({ area }: WeeklyCalendarProps) {
     return tasks.filter(task => task.due_date === dateStr);
   };
 
+  const getCommunityContentForDay = (date: Date) => {
+    if (area !== 'Community') return [];
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return communityContent.filter(content => content.fecha === dateStr);
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
       case 'high': return 'bg-red-500';
       case 'medium': return 'bg-yellow-500';
       case 'low': return 'bg-green-500';
       default: return 'bg-gray-500';
+    }
+  };
+
+  const getPlatformColor = (platform: string) => {
+    switch (platform?.toLowerCase()) {
+      case 'instagram': return 'bg-pink-500';
+      case 'facebook': return 'bg-blue-500';
+      default: return 'bg-purple-500';
     }
   };
 
@@ -298,6 +338,7 @@ export default function WeeklyCalendar({ area }: WeeklyCalendarProps) {
                 {weekDays.map((day) => {
                   const dayEvents = getEventsForDay(day);
                   const dayTasks = getTasksForDay(day);
+                  const dayCommunityContent = getCommunityContentForDay(day);
                   const hourEvents = dayEvents.filter(event => {
                     const eventHour = parseInt(event.horario_inicial.split(':')[0]);
                     return eventHour === hour;
@@ -343,6 +384,22 @@ export default function WeeklyCalendar({ area }: WeeklyCalendarProps) {
                           }}
                         >
                           <div className="truncate">{task.title}</div>
+                        </div>
+                      ))}
+
+                      {/* Mostrar contenido de community solo en la primera hora del día */}
+                      {hour === 6 && area === 'Community' && dayCommunityContent.map((content, index) => (
+                        <div
+                          key={content.id}
+                          className={`absolute left-1 text-white text-xs p-1 rounded shadow ${getPlatformColor(content.plataforma)}`}
+                          style={{
+                            top: `${(dayTasks.length + index) * 25}px`,
+                            width: '70%',
+                            fontSize: '10px'
+                          }}
+                        >
+                          <div className="truncate">{content.tipo_publicacion}</div>
+                          <div className="truncate opacity-75">{content.plataforma}</div>
                         </div>
                       ))}
                     </div>

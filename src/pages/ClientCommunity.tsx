@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarIcon, MessageSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, MessageSquare, CheckSquare } from 'lucide-react';
 import WeeklyCalendar from '@/components/calendar/WeeklyCalendar';
 import CommunityContent from '@/components/community/CommunityContent';
+import CommunityTasks from '@/components/community/CommunityTasks';
 
 export default function ClientCommunity() {
   const { id } = useParams();
@@ -38,6 +39,10 @@ export default function ClientCommunity() {
             <MessageSquare className="h-4 w-4" />
             <span>Contenidos</span>
           </TabsTrigger>
+          <TabsTrigger value="tasks" className="flex items-center space-x-2">
+            <CheckSquare className="h-4 w-4" />
+            <span>Tareas</span>
+          </TabsTrigger>
           <TabsTrigger value="calendar" className="flex items-center space-x-2">
             <CalendarIcon className="h-4 w-4" />
             <span>Calendario</span>
@@ -46,6 +51,10 @@ export default function ClientCommunity() {
 
         <TabsContent value="content" className="mt-8">
           <CommunityContent />
+        </TabsContent>
+
+        <TabsContent value="tasks" className="mt-8">
+          <CommunityTasks />
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-8">
