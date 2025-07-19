@@ -41,13 +41,23 @@ export default function Presentation() {
         if (!presentation || presentation.length === 0) throw new Error('Presentation not found');
 
         const presentationRecord = presentation[0];
-        setPresentationData(presentationRecord);
+        
+        // Transform the data to match our interface
+        const transformedPresentation: PresentationData = {
+          id: presentationRecord.id,
+          link: presentationRecord.link,
+          pilares: Array.isArray(presentationRecord.pilares) ? presentationRecord.pilares : [],
+          objetivos: Array.isArray(presentationRecord.objetivos) ? presentationRecord.objetivos : [],
+          client_id: presentationRecord.client_id
+        };
+        
+        setPresentationData(transformedPresentation);
 
         // Get client name
         const { data: client, error: clientError } = await supabase
           .from('clients')
           .select('name')
-          .eq('id', presentationRecord.client_id)
+          .eq('id', transformedPresentation.client_id)
           .single();
 
         if (clientError) throw clientError;
@@ -57,7 +67,7 @@ export default function Presentation() {
         const { data: contentData, error: contentError } = await supabase
           .from('community_content')
           .select('*')
-          .eq('client_id', presentationRecord.client_id)
+          .eq('client_id', transformedPresentation.client_id)
           .order('fecha', { ascending: true });
 
         if (contentError) throw contentError;

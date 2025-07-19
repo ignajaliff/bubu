@@ -20,7 +20,7 @@ interface CommunityTask {
   title: string;
   description: string;
   status: string;
-  priority: string;
+  priority: 'high' | 'medium' | 'low';
   due_date: string;
   responsible_user: string;
   accountable_user: string;
@@ -45,7 +45,7 @@ export default function CommunityTasks() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'medium' as 'high' | 'medium' | 'low',
     due_date: '',
     responsible_user: '',
     accountable_user: '',
@@ -103,13 +103,13 @@ export default function CommunityTasks() {
     try {
       const { error } = await supabase
         .from('community_task')
-        .insert([{
+        .insert({
           ...formData,
           client_id: clientId,
           info_type: 'task',
           status: 'pending',
           created_by: (await supabase.auth.getUser()).data.user?.id
-        }]);
+        });
 
       if (error) throw error;
 
@@ -218,7 +218,7 @@ export default function CommunityTasks() {
 
                   <div>
                     <Label htmlFor="priority">Prioridad</Label>
-                    <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
+                    <Select value={formData.priority} onValueChange={(value: 'high' | 'medium' | 'low') => setFormData({...formData, priority: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar prioridad" />
                       </SelectTrigger>

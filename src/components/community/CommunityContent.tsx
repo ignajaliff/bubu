@@ -61,8 +61,8 @@ export default function CommunityContent() {
   const [platformFilter, setPlatformFilter] = useState('all');
   
   // Estados para los modales
-  const [detailsModal, setDetailsModal] = useState({ isOpen: false, content: null });
-  const [statusModal, setStatusModal] = useState({ isOpen: false, content: null });
+  const [detailsModal, setDetailsModal] = useState<{ isOpen: boolean; content: CommunityContentRow | null }>({ isOpen: false, content: null });
+  const [statusModal, setStatusModal] = useState<{ isOpen: boolean; content: CommunityContentRow | null }>({ isOpen: false, content: null });
 
   const [formData, setFormData] = useState({
     semana: '',
@@ -131,10 +131,20 @@ export default function CommunityContent() {
         .rpc('get_presentation_links', { client_id_param: clientId });
 
       if (error) throw error;
-      setPresentationLinks(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map((item: any) => ({
+        id: item.id,
+        client_id: item.client_id,
+        link: item.link,
+        pilares: Array.isArray(item.pilares) ? item.pilares : [],
+        objetivos: Array.isArray(item.objetivos) ? item.objetivos : [],
+        created_at: item.created_at
+      }));
+      
+      setPresentationLinks(transformedData);
     } catch (error) {
       console.error('Error fetching presentation links:', error);
-      // If the function doesn't exist, we'll create it later
     }
   };
 

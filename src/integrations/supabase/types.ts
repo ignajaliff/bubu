@@ -494,6 +494,39 @@ export type Database = {
           },
         ]
       }
+      links_temporales: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          link: string
+          objetivos: Json | null
+          pilares: Json | null
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link: string
+          objetivos?: Json | null
+          pilares?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          link?: string
+          objetivos?: Json | null
+          pilares?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       marketing_task_camp: {
         Row: {
           accountable_user: string | null
@@ -746,7 +779,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_presentation_link: {
+        Args: {
+          link_id: string
+          client_id_param: string
+          link_url: string
+          pilares_data: Json
+          objetivos_data: Json
+          created_by_user: string
+        }
+        Returns: undefined
+      }
+      get_presentation_by_id: {
+        Args: { link_id: string }
+        Returns: {
+          id: string
+          client_id: string
+          link: string
+          pilares: Json
+          objetivos: Json
+          created_at: string
+        }[]
+      }
+      get_presentation_links: {
+        Args: { client_id_param: string }
+        Returns: {
+          id: string
+          client_id: string
+          link: string
+          pilares: Json
+          objetivos: Json
+          created_at: string
+        }[]
+      }
     }
     Enums: {
       info_type:
