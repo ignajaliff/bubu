@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { AuthProvider } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -30,53 +31,55 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <SidebarProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/presentation/:linkId" element={<Presentation />} />
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Routes>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/projects" element={<Projects />} />
-                      <Route path="/projects/:id" element={<ProjectDetail />} />
-                      <Route path="/calendar" element={<Calendar />} />
-                      <Route path="/team" element={<Team />} />
-                      <Route path="/documents" element={<Documents />} />
-                      <Route path="/time-tracking" element={<TimeTracking />} />
-                      <Route
-                        path="/projects/:id/*"
-                        element={
-                          <ClientLayout>
-                            <Routes>
-                              <Route path="dashboard" element={<ClientDashboard />} />
-                              <Route path="community" element={<ClientCommunity />} />
-                              <Route path="marketing" element={<ClientMarketing />} />
-                              <Route path="branding" element={<ClientBranding />} />
-                              <Route path="team" element={<ClientTeam />} />
-                            </Routes>
-                          </ClientLayout>
-                        }
-                      />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </BrowserRouter>
-      </SidebarProvider>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <SidebarProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/presentation/:linkId" element={<Presentation />} />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Routes>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/projects" element={<Projects />} />
+                        <Route path="/projects/:id" element={<ProjectDetail />} />
+                        <Route path="/calendar" element={<Calendar />} />
+                        <Route path="/team" element={<Team />} />
+                        <Route path="/documents" element={<Documents />} />
+                        <Route path="/time-tracking" element={<TimeTracking />} />
+                        <Route
+                          path="/projects/:id/*"
+                          element={
+                            <ClientLayout>
+                              <Routes>
+                                <Route path="dashboard" element={<ClientDashboard />} />
+                                <Route path="community" element={<ClientCommunity />} />
+                                <Route path="marketing" element={<ClientMarketing />} />
+                                <Route path="branding" element={<ClientBranding />} />
+                                <Route path="team" element={<ClientTeam />} />
+                              </Routes>
+                            </ClientLayout>
+                          }
+                        />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </SidebarProvider>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

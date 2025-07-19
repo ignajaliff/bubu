@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,8 @@ interface UserProfile {
   email: string;
 }
 
+type PriorityType = 'high' | 'medium' | 'low';
+
 export default function CommunityTasks() {
   const { id: clientId } = useParams();
   const { toast } = useToast();
@@ -44,7 +47,7 @@ export default function CommunityTasks() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium' as 'high' | 'medium' | 'low',
+    priority: 'medium' as PriorityType,
     due_date: '',
     responsible_user: '',
     accountable_user: '',
@@ -121,7 +124,7 @@ export default function CommunityTasks() {
       setFormData({
         title: '',
         description: '',
-        priority: 'medium' as 'high' | 'medium' | 'low',
+        priority: 'medium' as PriorityType,
         due_date: '',
         responsible_user: '',
         accountable_user: '',
@@ -217,7 +220,7 @@ export default function CommunityTasks() {
 
                   <div>
                     <Label htmlFor="priority">Prioridad</Label>
-                    <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
+                    <Select value={formData.priority} onValueChange={(value: PriorityType) => setFormData({...formData, priority: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar prioridad" />
                       </SelectTrigger>
