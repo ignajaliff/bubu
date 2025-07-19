@@ -46,7 +46,7 @@ const navigationItems = [
   }
 ];
 
-export function ClientLayout({ children }: ClientLayoutProps) {
+export default function ClientLayout({ children }: ClientLayoutProps) {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const { signOut, profile } = useAuth();

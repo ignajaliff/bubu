@@ -121,7 +121,7 @@ export default function CommunityTasks() {
       setFormData({
         title: '',
         description: '',
-        priority: 'medium',
+        priority: 'medium' as 'high' | 'medium' | 'low',
         due_date: '',
         responsible_user: '',
         accountable_user: '',

@@ -96,6 +96,10 @@ export default function Presentation() {
     }).join('');
   };
 
+  // Safely parse pilares and objetivos as arrays
+  const pilares = Array.isArray(linkData.pilares) ? linkData.pilares : [];
+  const objetivos = Array.isArray(linkData.objetivos) ? linkData.objetivos : [];
+
   const htmlTemplate = `
     <!DOCTYPE html>
     <html lang="es">
@@ -291,7 +295,7 @@ export default function Presentation() {
                 <div class="section">
                     <h2>🎯 Pilares de Contenido</h2>
                     <div class="pillars-grid">
-                        ${linkData.pilares.map((pilar: string, index: number) => `
+                        ${pilares.map((pilar: string, index: number) => `
                             <div class="pillar-card">
                                 <h3>Pilar ${index + 1}</h3>
                                 <p>${pilar}</p>
@@ -303,7 +307,7 @@ export default function Presentation() {
                 <div class="section">
                     <h2>🚀 Objetivos</h2>
                     <div class="objectives-grid">
-                        ${linkData.objetivos.map((objetivo: string, index: number) => `
+                        ${objetivos.map((objetivo: string, index: number) => `
                             <div class="objective-card">
                                 <h3>Objetivo ${index + 1}</h3>
                                 <p>${objetivo}</p>
