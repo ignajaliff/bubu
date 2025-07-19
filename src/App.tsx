@@ -13,6 +13,7 @@ import ClientTeam from "./pages/ClientTeam";
 import ClientMarketing from "./pages/ClientMarketing";
 import ClientBranding from "./pages/ClientBranding";
 import ClientCommunity from "./pages/ClientCommunity";
+import Presentation from "./pages/Presentation";
 import { ClientLayout } from "./components/ClientLayout";
 import { Layout } from "./components/Layout";
 
@@ -141,6 +142,9 @@ function App() {
                   </ClientLayout>
                 </ProtectedRoute>
               } />
+              
+              {/* Ruta para las presentaciones generadas */}
+              <Route path="/presentation/:linkId" element={<Presentation />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

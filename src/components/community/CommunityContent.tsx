@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
-import { Plus, Search, Filter, Eye, RefreshCw } from 'lucide-react';
+import { Plus, Search, Filter, Eye, RefreshCw, FileText } from 'lucide-react';
 import ContentDetailsModal from './ContentDetailsModal';
 import StatusChangeModal from './StatusChangeModal';
+import PresentationModal from './PresentationModal';
 
 interface CommunityContentRow {
   id: string;
@@ -69,6 +70,9 @@ export default function CommunityContent() {
     copy_grafica_video: '',
     copy_publicacion: ''
   });
+
+  const [presentationModal, setPresentationModal] = useState({ isOpen: false });
+  const [generatingPresentation, setGeneratingPresentation] = useState(false);
 
   useEffect(() => {
     fetchContent();
@@ -175,10 +179,52 @@ export default function CommunityContent() {
     return <div className="flex justify-center p-8">Cargando...</div>;
   }
 
+  const handleCreatePresentation = async (data: { pilares: string[], objetivos: string[] }) => {
+    setGeneratingPresentation(true);
+    
+    try {
+      // Generate a unique ID for the presentation
+      const presentationId = crypto.randomUUID();
+      
+      // Create the presentation record
+      const { error } = await supabase
+        .from('links_temporales')
+        .insert([{
+          id: presentationId,
+          client_id: clientId,
+          link: `/presentation/${presentationId}`,
+          pilares: data.pilares,
+          objetivos: data.objetivos,
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: "Presentación creada correctamente",
+      });
+
+      // Open the presentation in a new tab
+      window.open(`/presentation/${presentationId}`, '_blank');
+      
+      setPresentationModal({ isOpen: false });
+    } catch (error) {
+      console.error('Error creating presentation:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear la presentación",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingPresentation(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
         <h2 className="text-2xl font-bold mb-2">Gestión de Contenidos</h2>
         <p className="opacity-90">Administra y supervisa todo el contenido de redes sociales</p>
       </div>
@@ -494,6 +540,29 @@ export default function CommunityContent() {
         </div>
       )}
 
+      {/* New section for presentation creation */}
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Crear Presentación</h3>
+          <p className="text-gray-600 mb-4">
+            Genera una presentación profesional con todo el contenido planificado
+          </p>
+          <Button
+            onClick={() => setPresentationModal({ isOpen: true })}
+            disabled={content.length === 0}
+            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Crear Presentación
+          </Button>
+          {content.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">
+              Necesitas tener contenido cargado para crear una presentación
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Modales */}
       <ContentDetailsModal
         content={detailsModal.content}
@@ -507,6 +576,14 @@ export default function CommunityContent() {
         isOpen={statusModal.isOpen}
         onClose={() => setStatusModal({ isOpen: false, content: null })}
         onUpdate={refreshContent}
+      />
+
+      {/* New Presentation Modal */}
+      <PresentationModal
+        isOpen={presentationModal.isOpen}
+        onClose={() => setPresentationModal({ isOpen: false })}
+        onSubmit={handleCreatePresentation}
+        loading={generatingPresentation}
       />
     </div>
   );
