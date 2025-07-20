@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Grid2x2 } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
@@ -30,8 +30,12 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 arch-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-            <Grid2x2 className="h-8 w-8 text-white" />
+          <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <img 
+              src="/lovable-uploads/44e8bdcd-d039-4b4a-9d11-943d3d3cfbe2.png" 
+              alt="Bubú Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-bold">Bubu Agency</CardTitle>
           <p className="text-muted-foreground">Gestión de Agencia Digital</p>
