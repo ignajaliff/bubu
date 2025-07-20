@@ -42,12 +42,16 @@ export default function Presentation() {
 
         const presentationRecord = presentation[0];
         
-        // Transform the data to match our interface
+        // Transform the data to match our interface with proper type handling
         const transformedPresentation: PresentationData = {
           id: presentationRecord.id,
           link: presentationRecord.link,
-          pilares: Array.isArray(presentationRecord.pilares) ? presentationRecord.pilares : [],
-          objetivos: Array.isArray(presentationRecord.objetivos) ? presentationRecord.objetivos : [],
+          pilares: Array.isArray(presentationRecord.pilares) 
+            ? presentationRecord.pilares.filter((item): item is string => typeof item === 'string')
+            : [],
+          objetivos: Array.isArray(presentationRecord.objetivos) 
+            ? presentationRecord.objetivos.filter((item): item is string => typeof item === 'string')
+            : [],
           client_id: presentationRecord.client_id
         };
         
@@ -134,9 +138,15 @@ export default function Presentation() {
     return `tipo-${normalized}`;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <style>{`
+  // Replace placeholders in the HTML template
+  let htmlTemplate = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificación Mensual - ${clientName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -144,219 +154,224 @@ export default function Presentation() {
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            min-height: 100vh;
-            color: #1e293b;
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #0f3043;
             line-height: 1.6;
+            scroll-behavior: smooth;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
             background: white;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            min-height: 100vh;
-            border-radius: 0;
         }
 
-        .header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #6366f1 100%);
-            color: white;
-            padding: 60px 50px;
+        /* HERO SECTION */
+        .hero {
+            background: white;
+            color: #0f3043;
+            padding: 80px 40px;
             text-align: center;
             position: relative;
             overflow: hidden;
         }
 
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-            opacity: 0.3;
-        }
-
-        .brand-logo {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            margin: 0 auto 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .hero-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .header h1 {
-            font-size: 3.5rem;
-            margin-bottom: 16px;
-            font-weight: 700;
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 24px;
             letter-spacing: -2px;
-            position: relative;
-            z-index: 1;
+            color: #0f3043;
         }
 
-        .header .subtitle {
-            font-size: 1.4rem;
-            opacity: 0.95;
+        .hero .subtitle {
+            font-size: 1.5rem;
             font-weight: 400;
-            position: relative;
-            z-index: 1;
+            margin-bottom: 40px;
+            color: #0f3043;
         }
 
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+            margin-top: 60px;
+        }
+
+        .stat-card {
+            background: rgba(15, 48, 67, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(15, 48, 67, 0.2);
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #0f3043;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #0f3043;
+            margin-top: 8px;
+        }
+
+        /* STRATEGY SECTION */
         .strategy-section {
-            padding: 60px 50px;
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-bottom: 1px solid #e2e8f0;
+            padding: 100px 40px;
+            background: white;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #0f3043;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: #0f3043;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .strategy-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            max-width: 1000px;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 60px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        .strategy-column h3 {
-            color: #1e40af;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 30px;
+        .strategy-column {
             text-align: center;
+        }
+
+        .strategy-column h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #0f3043;
+            margin-bottom: 40px;
             position: relative;
-            padding-bottom: 15px;
+            display: inline-block;
         }
 
         .strategy-column h3::after {
             content: '';
             position: absolute;
-            bottom: 0;
+            bottom: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 60px;
+            width: 80px;
             height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            background: #0f3043;
             border-radius: 2px;
         }
 
+        .strategy-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
         .strategy-item {
-            background: white;
-            padding: 24px;
-            margin-bottom: 16px;
-            border-radius: 12px;
-            border-left: 5px solid #3b82f6;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            font-size: 18px;
             font-weight: 500;
-            color: #374151;
-            transition: all 0.3s ease;
+            color: #0f3043;
+            margin-bottom: 16px;
+            padding-left: 24px;
             position: relative;
         }
 
-        .strategy-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        .period-info {
-            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-            padding: 40px 50px;
-            text-align: center;
-            border-bottom: 1px solid #c7d2fe;
-        }
-
-        .period-info h2 {
-            color: #1e40af;
-            font-size: 2.2rem;
-            margin-bottom: 12px;
+        .strategy-item::before {
+            content: '-';
+            position: absolute;
+            left: 0;
             font-weight: 700;
-            text-transform: capitalize;
+            color: #0f3043;
         }
 
-        .period-info p {
-            color: #4338ca;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
+        /* CONTENT SECTION */
         .content-section {
-            padding: 50px;
-            background: white;
+            padding: 100px 40px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         }
 
         .week-header {
-            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
-            color: white;
-            padding: 25px 35px;
-            margin: 50px 0 35px 0;
-            border-radius: 12px;
-            font-size: 1.3rem;
+            background: transparent;
+            color: #0f3043;
+            border: 2px solid #0f3043;
+            padding: 32px 40px;
+            margin: 80px 0 40px 0;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 2rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            box-shadow: 0 10px 15px -3px rgba(30, 64, 175, 0.3);
+            letter-spacing: 2px;
         }
 
         .week-header:first-child {
             margin-top: 0;
         }
 
-        .week-header::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -4px;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #6366f1);
-            border-radius: 0 0 12px 12px;
+        .content-cards-grid {
+            display: grid;
+            gap: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .content-card {
             background: white;
-            margin-bottom: 24px;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
-            transition: all 0.3s ease;
-            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s ease;
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            grid-template-columns: 2fr 1fr;
+            min-height: 300px;
         }
 
         .content-card:hover {
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transform: translateY(-4px);
-        }
-
-        .content-card:last-child {
-            margin-bottom: 0;
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
         }
 
         .card-left {
+            padding: 40px;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
         }
 
         .card-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 24px 30px;
-            border-bottom: 1px solid #e5e7eb;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 24px;
             flex-wrap: wrap;
             gap: 16px;
         }
@@ -364,276 +379,289 @@ export default function Presentation() {
         .post-type {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            border-radius: 8px;
-            font-size: 13px;
+            gap: 12px;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 2px solid;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .post-type::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .post-type:hover::before {
-            left: 100%;
+            letter-spacing: 1px;
         }
 
         .date-badge {
-            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+            background: #0f3043;
             color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
+            padding: 12px 24px;
+            border-radius: 50px;
             font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.3);
-        }
-
-        .card-body {
-            padding: 30px;
-            flex-grow: 1;
-            background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+            font-weight: 700;
         }
 
         .copy-content {
-            font-size: 16px;
-            line-height: 1.8;
-            color: #374151;
-            margin-bottom: 20px;
-            text-align: justify;
-            font-weight: 400;
+            font-size: 18px;
+            line-height: 1.7;
+            color: #0f3043;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .hashtags {
+            color: #0f3043;
+            font-size: 14px;
+            font-weight: 500;
+            padding-top: 24px;
+            border-top: 2px solid #f3f4f6;
         }
 
         .card-right {
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            border-left: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px;
-            min-height: 250px;
+            padding: 40px;
+            position: relative;
         }
 
         .content-placeholder {
-            background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
-            border: 3px dashed #3b82f6;
+            background: white;
+            border: 2px dashed #cbd5e1;
             border-radius: 12px;
             width: 100%;
-            height: 180px;
+            height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #3b82f6;
+            color: #0f3043;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 16px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
         }
 
-        .content-placeholder::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
-            animation: pulse 3s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-        }
-
-        .tipo-post, .tipo-foto, .tipo-publicacion {
-            background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+        /* Tipos de contenido */
+        .tipo-foto {
+            background: #0f3043;
             color: white;
-            border-color: #1e40af;
         }
 
         .tipo-video {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            background: #dc2626;
             color: white;
-            border-color: #dc2626;
         }
 
-        .tipo-story, .tipo-historia {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        .tipo-story {
+            background: #059669;
             color: white;
-            border-color: #7c3aed;
         }
 
         .tipo-reel {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            background: #7c3aed;
             color: white;
-            border-color: #059669;
         }
 
         .tipo-carrusel {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            background: #ea580c;
             color: white;
-            border-color: #d97706;
         }
 
-        .footer {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        .tipo-publicacion {
+            background: #0f3043;
             color: white;
-            padding: 50px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
         }
 
-        .footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid2" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid2)"/></svg>');
+        .tipo-post {
+            background: #0f3043;
+            color: white;
         }
 
-        .footer .company-info {
-            margin-bottom: 20px;
-            font-weight: 700;
-            font-size: 1.4rem;
-            position: relative;
-            z-index: 1;
+        .tipo-historia {
+            background: #059669;
+            color: white;
         }
 
-        .footer p {
-            opacity: 0.9;
-            font-size: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
+        /* RESPONSIVE */
         @media (max-width: 768px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
+            .hero {
+                padding: 60px 20px;
             }
-            
-            .header {
-                padding: 40px 30px;
+
+            .hero h1 {
+                font-size: 2.5rem;
+                letter-spacing: -1px;
             }
-            
-            .header h1 {
+
+            .hero .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                margin-top: 40px;
+            }
+
+            .strategy-section {
+                padding: 60px 20px;
+            }
+
+            .section-title {
                 font-size: 2.5rem;
             }
-            
-            .strategy-section, .content-section {
-                padding: 40px 30px;
-            }
-            
-            .content-card {
-                grid-template-columns: 1fr;
-            }
-            
-            .card-right {
-                border-left: none;
-                border-top: 1px solid #e5e7eb;
-                min-height: auto;
-            }
-            
+
             .strategy-grid {
                 grid-template-columns: 1fr;
-                gap: 30px;
+                gap: 40px;
+            }
+
+            .strategy-column h3 {
+                font-size: 2rem;
+            }
+
+            .strategy-item {
+                font-size: 16px;
+            }
+
+            .content-section {
+                padding: 60px 20px;
+            }
+
+            .week-header {
+                padding: 24px 20px;
+                font-size: 1.5rem;
+                margin: 60px 0 32px 0;
+            }
+
+            .content-card {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .card-left {
+                padding: 24px;
+            }
+
+            .card-right {
+                padding: 24px;
+                border-top: 2px solid #f3f4f6;
+            }
+
+            .content-placeholder {
+                height: 150px;
+                font-size: 14px;
+            }
+
+            .copy-content {
+                font-size: 16px;
             }
         }
-      `}</style>
 
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        @media (min-width: 1200px) {
+            .hero {
+                padding: 120px 40px;
+            }
 
-      <div className="container">
-        {/* Header */}
-        <div className="header">
-          <div className="brand-logo">📋</div>
-          <h1>Calendario de Contenidos</h1>
-          <p className="subtitle">{clientName} • Estrategia de Marketing Digital</p>
-        </div>
+            .hero h1 {
+                font-size: 5rem;
+            }
 
-        {/* Strategy Section */}
-        <div className="strategy-section">
-          <div className="strategy-grid">
-            <div className="strategy-column">
-              <h3>Pilares de Contenido</h3>
-              {presentationData.pilares.map((pilar, index) => (
-                <div key={index} className="strategy-item">{pilar}</div>
-              ))}
-            </div>
-            <div className="strategy-column">
-              <h3>Objetivos</h3>
-              {presentationData.objetivos.map((objetivo, index) => (
-                <div key={index} className="strategy-item">{objetivo}</div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Period Info */}
-        <div className="period-info">
-          <h2>{monthYear}</h2>
-          <p>{content.length} publicaciones programadas • Distribución estratégica semanal</p>
-        </div>
-
-        {/* Content Section */}
-        <div className="content-section">
-          {Object.entries(contentByWeek).map(([week, weekContent]) => (
-            <div key={week}>
-              <div className="week-header">
-                {week} • {startDate} - {endDate}
-              </div>
-              
-              {weekContent.map((item) => (
-                <div key={item.id} className="content-card">
-                  <div className="card-left">
-                    <div className="card-header">
-                      <span className={`post-type ${getPostTypeClass(item.tipo_publicacion)}`}>
-                        {item.tipo_publicacion}
-                      </span>
-                      <span className="date-badge">
-                        {new Date(item.fecha).toLocaleDateString('es-ES')}
-                      </span>
+            .strategy-section, .content-section {
+                padding: 120px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HERO SECTION -->
+        <div class="hero">
+            <div class="hero-content">
+                <h1>PLANIFICACIÓN MENSUAL</h1>
+                <p class="subtitle">${clientName}</p>
+                
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <span class="stat-number">${content.length}</span>
+                        <span class="stat-label">Publicaciones</span>
                     </div>
-                    <div className="card-body">
-                      <div className="copy-content">
-                        {item.copy_publicacion || 'Contenido pendiente de redacción'}
-                      </div>
+                    <div class="stat-card">
+                        <span class="stat-number">4</span>
+                        <span class="stat-label">Semanas</span>
                     </div>
-                  </div>
-                  <div className="card-right">
-                    <div className="content-placeholder">
-                      Contenido visual<br />pendiente
+                    <div class="stat-card">
+                        <span class="stat-number">${monthYear.toUpperCase()}</span>
+                        <span class="stat-label">Período</span>
                     </div>
-                  </div>
                 </div>
-              ))}
             </div>
-          ))}
         </div>
 
-        {/* Footer */}
-        <div className="footer">
-          <div className="company-info">Tu Agencia Digital</div>
-          <p>Propuesta de contenido • {clientName} • {new Date().toLocaleDateString('es-ES')}</p>
+        <!-- STRATEGY SECTION -->
+        <div class="strategy-section">
+            <div class="section-header">
+                <h2 class="section-title">Estrategia de Contenido</h2>
+                <p class="section-subtitle">Pilares fundamentales y objetivos estratégicos para maximizar el impacto de tu presencia digital</p>
+            </div>
+            
+            <div class="strategy-grid">
+                <div class="strategy-column">
+                    <h3>Pilares de Contenido</h3>
+                    <div class="strategy-list">
+                        ${presentationData.pilares.map(pilar => 
+                          `<div class="strategy-item"><strong>${pilar}</strong></div>`
+                        ).join('')}
+                    </div>
+                </div>
+                <div class="strategy-column">
+                    <h3>Objetivos Clave</h3>
+                    <div class="strategy-list">
+                        ${presentationData.objetivos.map(objetivo => 
+                          `<div class="strategy-item"><strong>${objetivo}</strong></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- CONTENT SECTION -->
+        <div class="content-section">
+            ${Object.entries(contentByWeek).map(([week, weekContent]) => `
+                <div class="week-header">
+                    📅 ${week} • ${startDate} - ${endDate}
+                </div>
+
+                <div class="content-cards-grid">
+                    ${weekContent.map((item) => `
+                        <div class="content-card">
+                            <div class="card-left">
+                                <div class="card-header">
+                                    <span class="post-type ${getPostTypeClass(item.tipo_publicacion)}">
+                                        📸 ${item.tipo_publicacion.toUpperCase()}
+                                    </span>
+                                    <span class="date-badge">${new Date(item.fecha).toLocaleDateString('es-ES')}</span>
+                                </div>
+                                <div class="copy-content">
+                                    ${item.copy_publicacion || 'Contenido pendiente de redacción'}
+                                </div>
+                                <div class="hashtags">
+                                    #${item.pilar} #${item.plataforma} #ContenidoDigital
+                                </div>
+                            </div>
+                            <div class="card-right">
+                                <div class="content-placeholder">
+                                    Contenido visual<br/>pendiente
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('')}
+        </div>
+    </div>
+</body>
+</html>`;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div dangerouslySetInnerHTML={{ __html: htmlTemplate }} />
     </div>
   );
 }

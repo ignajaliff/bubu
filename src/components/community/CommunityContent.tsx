@@ -258,10 +258,10 @@ export default function CommunityContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">Gestión de Contenidos</h2>
-        <p className="opacity-90">Administra y supervisa todo el contenido de redes sociales</p>
+      {/* Header - Simplified style */}
+      <div className="bg-white rounded-xl p-6 border shadow-sm">
+        <h2 className="text-2xl font-bold mb-2 text-gray-900">Gestión de Contenidos</h2>
+        <p className="text-gray-600">Administra y supervisa todo el contenido de redes sociales</p>
       </div>
 
       {/* Presentation Links Section */}
@@ -270,7 +270,7 @@ export default function CommunityContent() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Presentaciones Creadas</h3>
           <div className="space-y-3">
             {presentationLinks.map((presentation) => (
-              <div key={presentation.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+              <div key={presentation.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
                 <div>
                   <p className="font-medium text-gray-900">
                     Presentación del {new Date(presentation.created_at).toLocaleDateString('es-ES')}
@@ -605,7 +605,7 @@ export default function CommunityContent() {
         </div>
       )}
 
-      {/* New section for presentation creation */}
+      {/* Create Presentation Section - Simplified style */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Crear Presentación</h3>
@@ -615,7 +615,7 @@ export default function CommunityContent() {
           <Button
             onClick={() => setPresentationModal({ isOpen: true })}
             disabled={content.length === 0}
-            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             <FileText className="h-4 w-4 mr-2" />
             Crear Presentación
