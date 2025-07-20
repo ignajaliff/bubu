@@ -338,11 +338,12 @@ export default function CommunityContent() {
 
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+              <Button className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg shadow-md transition-all duration-200">
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Contenido
               </Button>
             </DialogTrigger>
+            
             <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Agregar Nuevo Contenido</DialogTitle>
@@ -575,7 +576,7 @@ export default function CommunityContent() {
                         variant="outline"
                         size="sm"
                         onClick={() => setDetailsModal({ isOpen: true, content: item })}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50 font-medium px-3 py-2 rounded-md"
                       >
                         <Eye className="h-3 w-3 mr-1" />
                         Ver detalles
@@ -584,7 +585,7 @@ export default function CommunityContent() {
                         variant="outline"
                         size="sm"
                         onClick={() => setStatusModal({ isOpen: true, content: item })}
-                        className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                        className="bg-white border-2 border-purple-600 text-purple-600 hover:bg-purple-50 font-medium px-3 py-2 rounded-md"
                       >
                         <RefreshCw className="h-3 w-3 mr-1" />
                         Cambiar estados

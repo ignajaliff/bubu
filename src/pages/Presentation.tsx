@@ -128,14 +128,17 @@ export default function Presentation() {
   const firstDate = content[0]?.fecha ? new Date(content[0].fecha) : new Date();
   const monthYear = firstDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
-  // Get date range
-  const dates = content.map(item => new Date(item.fecha)).sort();
-  const startDate = dates[0]?.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-  const endDate = dates[dates.length - 1]?.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
-
   const getPostTypeClass = (tipo: string) => {
     const normalized = tipo.toLowerCase().replace(/\s+/g, '-');
     return `tipo-${normalized}`;
+  };
+
+  // Function to get date range for each week
+  const getWeekDateRange = (weekContent: CommunityContentRow[]) => {
+    const dates = weekContent.map(item => new Date(item.fecha)).sort((a, b) => a.getTime() - b.getTime());
+    const startDate = dates[0]?.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+    const endDate = dates[dates.length - 1]?.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+    return { startDate, endDate };
   };
 
   // Replace placeholders in the HTML template
@@ -171,7 +174,7 @@ export default function Presentation() {
         .hero {
             background: white;
             color: #0f3043;
-            padding: 80px 40px;
+            padding: 120px 40px 80px 40px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -185,25 +188,28 @@ export default function Presentation() {
         }
 
         .hero h1 {
-            font-size: 4rem;
+            font-size: 5rem;
             font-weight: 900;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
             letter-spacing: -2px;
             color: #0f3043;
         }
 
         .hero .subtitle {
-            font-size: 1.5rem;
-            font-weight: 400;
-            margin-bottom: 40px;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 60px;
             color: #0f3043;
         }
 
         .hero-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: 1fr 2fr 1fr;
             gap: 32px;
             margin-top: 60px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .stat-card {
@@ -213,6 +219,13 @@ export default function Presentation() {
             padding: 24px;
             border-radius: 16px;
             text-align: center;
+        }
+
+        .stat-card.middle-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .stat-number {
@@ -481,16 +494,16 @@ export default function Presentation() {
         /* RESPONSIVE */
         @media (max-width: 768px) {
             .hero {
-                padding: 60px 20px;
+                padding: 80px 20px 60px 20px;
             }
 
             .hero h1 {
-                font-size: 2.5rem;
+                font-size: 3rem;
                 letter-spacing: -1px;
             }
 
             .hero .subtitle {
-                font-size: 1.2rem;
+                font-size: 1.5rem;
             }
 
             .hero-stats {
@@ -556,11 +569,11 @@ export default function Presentation() {
 
         @media (min-width: 1200px) {
             .hero {
-                padding: 120px 40px;
+                padding: 140px 40px 100px 40px;
             }
 
             .hero h1 {
-                font-size: 5rem;
+                font-size: 6rem;
             }
 
             .strategy-section, .content-section {
@@ -582,13 +595,13 @@ export default function Presentation() {
                         <span class="stat-number">${content.length}</span>
                         <span class="stat-label">Publicaciones</span>
                     </div>
+                    <div class="stat-card middle-card">
+                        <span class="stat-number">${monthYear.toUpperCase()}</span>
+                        <span class="stat-label">Período</span>
+                    </div>
                     <div class="stat-card">
                         <span class="stat-number">4</span>
                         <span class="stat-label">Semanas</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-number">${monthYear.toUpperCase()}</span>
-                        <span class="stat-label">Período</span>
                     </div>
                 </div>
             </div>
@@ -623,9 +636,11 @@ export default function Presentation() {
 
         <!-- CONTENT SECTION -->
         <div class="content-section">
-            ${Object.entries(contentByWeek).map(([week, weekContent]) => `
+            ${Object.entries(contentByWeek).map(([week, weekContent]) => {
+              const { startDate, endDate } = getWeekDateRange(weekContent);
+              return `
                 <div class="week-header">
-                    📅 ${week} • ${startDate} - ${endDate}
+                    ${week} • ${startDate} - ${endDate}
                 </div>
 
                 <div class="content-cards-grid">
@@ -634,7 +649,7 @@ export default function Presentation() {
                             <div class="card-left">
                                 <div class="card-header">
                                     <span class="post-type ${getPostTypeClass(item.tipo_publicacion)}">
-                                        📸 ${item.tipo_publicacion.toUpperCase()}
+                                        ${item.tipo_publicacion.toUpperCase()}
                                     </span>
                                     <span class="date-badge">${new Date(item.fecha).toLocaleDateString('es-ES')}</span>
                                 </div>
@@ -653,7 +668,8 @@ export default function Presentation() {
                         </div>
                     `).join('')}
                 </div>
-            `).join('')}
+              `;
+            }).join('')}
         </div>
     </div>
 </body>
