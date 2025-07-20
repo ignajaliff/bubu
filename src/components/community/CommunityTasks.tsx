@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -174,16 +173,16 @@ export default function CommunityTasks() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white">
+      {/* Header - Simplified style matching content page */}
+      <div className="bg-white rounded-xl p-6 border shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Tareas de Community</h2>
-            <p className="opacity-90">Gestiona y supervisa todas las tareas del equipo de community</p>
+            <h2 className="text-2xl font-bold mb-2 text-gray-900">Tareas de Community</h2>
+            <p className="text-gray-600">Gestiona y supervisa todas las tareas del equipo de community</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white text-indigo-600 hover:bg-gray-100">
+              <Button className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg shadow-md transition-all duration-200">
                 <Plus className="h-4 w-4 mr-2" />
                 Nueva Tarea
               </Button>

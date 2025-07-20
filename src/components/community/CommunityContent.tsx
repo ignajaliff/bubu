@@ -96,7 +96,7 @@ export default function CommunityContent() {
         .from('community_content')
         .select('*')
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
+        .order('fecha', { ascending: false });
 
       if (error) throw error;
       setContent(data || []);
@@ -254,6 +254,10 @@ export default function CommunityContent() {
     } finally {
       setGeneratingPresentation(false);
     }
+  };
+
+  const isContentCompleted = (item: CommunityContentRow) => {
+    return item.estado_diseno === 'Publicado' && item.estado_copies === 'Aprobado';
   };
 
   return (
@@ -505,7 +509,7 @@ export default function CommunityContent() {
         </div>
       </div>
 
-      {/* Tabla con mejor diseño */}
+      {/* Tabla con mejor diseño y highlighting condicional */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
@@ -525,7 +529,14 @@ export default function CommunityContent() {
             </TableHeader>
             <TableBody>
               {filteredContent.map((item, index) => (
-                <TableRow key={item.id} className={`hover:bg-slate-50 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-25'}`}>
+                <TableRow 
+                  key={item.id} 
+                  className={`hover:bg-slate-50 ${
+                    isContentCompleted(item) 
+                      ? 'bg-green-50 hover:bg-green-100' 
+                      : index % 2 === 0 ? 'bg-white' : 'bg-slate-25'
+                  }`}
+                >
                   <TableCell className="font-medium text-slate-900">{item.semana}</TableCell>
                   <TableCell className="text-slate-700">{new Date(item.fecha).toLocaleDateString()}</TableCell>
                   <TableCell className="text-slate-700">{item.tipo_publicacion}</TableCell>
