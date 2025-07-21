@@ -32,7 +32,7 @@ export default function Login() {
         <CardHeader className="text-center">
           <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4">
             <img 
-              src="/lovable-uploads/44e8bdcd-d039-4b4a-9d11-943d3d3cfbe2.png" 
+              src="/assets/44e8bdcd-d039-4b4a-9d11-943d3d3cfbe2.png" 
               alt="Bubú Logo" 
               className="w-full h-full object-contain"
             />
