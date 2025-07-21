@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from 'react-router-dom';
-import { Plus, Search, Filter, Eye, RefreshCw, FileText, ExternalLink } from 'lucide-react';
+import { Plus, Search, Filter, Eye, RefreshCw, FileText, ExternalLink, RotateCcw } from 'lucide-react';
 import ContentDetailsModal from './ContentDetailsModal';
 import StatusChangeModal from './StatusChangeModal';
 import PresentationModal from './PresentationModal';
@@ -83,6 +83,7 @@ export default function CommunityContent() {
 
   const [presentationModal, setPresentationModal] = useState({ isOpen: false });
   const [generatingPresentation, setGeneratingPresentation] = useState(false);
+  const [refreshingPresentation, setRefreshingPresentation] = useState<string | null>(null);
 
   useEffect(() => {
     fetchContent();
@@ -199,20 +200,6 @@ export default function CommunityContent() {
     fetchContent();
   };
 
-  const filteredContent = content.filter(item => {
-    const matchesSearch = item.pilar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.referencia?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.semana.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || item.estado_diseno === statusFilter;
-    const matchesPlatform = platformFilter === 'all' || item.plataforma === platformFilter;
-    
-    return matchesSearch && matchesStatus && matchesPlatform;
-  });
-
-  if (loading) {
-    return <div className="flex justify-center p-8">Cargando...</div>;
-  }
-
   const handleCreatePresentation = async (data: { pilares: string[], objetivos: string[] }) => {
     setGeneratingPresentation(true);
     
@@ -256,9 +243,73 @@ export default function CommunityContent() {
     }
   };
 
+  const handleRefreshPresentation = async (presentationId: string) => {
+    setRefreshingPresentation(presentationId);
+    
+    try {
+      // Delete the existing presentation
+      const { error: deleteError } = await supabase
+        .from('links_temporales')
+        .delete()
+        .eq('id', presentationId);
+
+      if (deleteError) throw deleteError;
+
+      // Get the original presentation data to recreate it
+      const presentation = presentationLinks.find(p => p.id === presentationId);
+      if (!presentation) {
+        throw new Error('Presentación no encontrada');
+      }
+
+      // Create a new presentation with the same data but fresh content
+      const { error: createError } = await supabase.rpc('create_presentation_link', {
+        link_id: presentationId, // Use the same ID to maintain the same URL
+        client_id_param: clientId,
+        link_url: `/presentation/${presentationId}`,
+        pilares_data: presentation.pilares,
+        objetivos_data: presentation.objetivos,
+        created_by_user: (await supabase.auth.getUser()).data.user?.id
+      });
+
+      if (createError) throw createError;
+
+      toast({
+        title: "Éxito",
+        description: "Presentación actualizada correctamente",
+      });
+
+      // Refresh presentation links to show updated timestamp
+      fetchPresentationLinks();
+
+    } catch (error) {
+      console.error('Error refreshing presentation:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar la presentación",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshingPresentation(null);
+    }
+  };
+
   const isContentCompleted = (item: CommunityContentRow) => {
     return item.estado_diseno === 'Publicado' && item.estado_copies === 'Aprobado';
   };
+
+  const filteredContent = content.filter(item => {
+    const matchesSearch = item.pilar?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.referencia?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         item.semana.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || item.estado_diseno === statusFilter;
+    const matchesPlatform = platformFilter === 'all' || item.plataforma === platformFilter;
+    
+    return matchesSearch && matchesStatus && matchesPlatform;
+  });
+
+  if (loading) {
+    return <div className="flex justify-center p-8">Cargando...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -283,15 +334,31 @@ export default function CommunityContent() {
                     {presentation.pilares.length} pilares • {presentation.objetivos.length} objetivos
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(presentation.link, '_blank')}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Ver Presentación
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRefreshPresentation(presentation.id)}
+                    disabled={refreshingPresentation === presentation.id}
+                    className="text-gray-600 border-gray-200 hover:bg-gray-50"
+                  >
+                    {refreshingPresentation === presentation.id ? (
+                      <RotateCcw className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                    )}
+                    {refreshingPresentation === presentation.id ? 'Actualizando...' : 'Actualizar'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(presentation.link, '_blank')}
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Ver Presentación
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
