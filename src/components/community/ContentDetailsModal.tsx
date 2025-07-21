@@ -21,7 +21,8 @@ export default function ContentDetailsModal({ content, isOpen, onClose, onUpdate
   const [editData, setEditData] = useState({
     comentarios_diseno: content?.comentarios_diseno || '',
     comentarios_copies: content?.comentarios_copies || '',
-    copy_grafica_video: content?.copy_grafica_video || ''
+    copy_grafica_video: content?.copy_grafica_video || '',
+    copy_publicacion: content?.copy_publicacion || ''
   });
 
   const handleSave = async () => {
@@ -160,6 +161,26 @@ export default function ContentDetailsModal({ content, isOpen, onClose, onUpdate
               ) : (
                 <div className="mt-2 p-3 bg-white border rounded-md min-h-[100px]">
                   {content.copy_grafica_video || 'Sin copy'}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="copy_publicacion" className="text-sm font-medium text-slate-700">
+                Copy de la publicación
+              </Label>
+              {isEditing ? (
+                <Textarea
+                  id="copy_publicacion"
+                  value={editData.copy_publicacion}
+                  onChange={(e) => setEditData({...editData, copy_publicacion: e.target.value})}
+                  placeholder="Agregar copy de la publicación..."
+                  rows={4}
+                  className="mt-2"
+                />
+              ) : (
+                <div className="mt-2 p-3 bg-white border rounded-md min-h-[100px]">
+                  {content.copy_publicacion || 'Sin copy'}
                 </div>
               )}
             </div>
